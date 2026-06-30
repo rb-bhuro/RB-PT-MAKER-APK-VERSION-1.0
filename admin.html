@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - RAM BHAKT ESPORTS</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --green: #00d084;
+            --purple: #7c3aed;
+            --pink: #ff3366;
+            --bg: #f4f6fb;
+            --card: #fff;
+            --text: #1a1a2e;
+            --text-soft: #4a4a6a;
+            --border: rgba(0,0,0,0.06);
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        .login-body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f4f6fb 0%, #e8ecf4 100%);
+        }
+        .login-box {
+            background: var(--card);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.06);
+            width: 360px;
+            max-width: 90vw;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        .login-box h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--green), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .login-box p { color: var(--text-soft); font-size: 14px; margin-bottom: 24px; }
+        .login-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e4ec;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+        .login-box input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,208,132,0.1); }
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--green), #00b894);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+        .login-box button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,208,132,0.3); }
+        .login-error { color: var(--pink); font-size: 13px; margin-top: 8px; display: none; }
+
+        .admin-header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .admin-header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            background: linear-gradient(135deg, var(--green), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .admin-header .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .admin-header button, .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .admin-header button:hover { transform: translateY(-2px); }
+        .btn-green { background: linear-gradient(135deg, var(--green), #00b894); color: #fff; box-shadow: 0 2px 8px rgba(0,208,132,0.2); }
+        .btn-green:hover { box-shadow: 0 6px 24px rgba(0,208,132,0.4); }
+        .btn-purple { background: linear-gradient(135deg, var(--purple), #6d28d9); color: #fff; box-shadow: 0 2px 8px rgba(124,58,237,0.2); }
+        .btn-purple:hover { box-shadow: 0 6px 24px rgba(124,58,237,0.4); }
+        .btn-pink { background: linear-gradient(135deg, var(--pink), #cc0033); color: #fff; box-shadow: 0 2px 8px rgba(255,51,102,0.2); }
+        .btn-pink:hover { box-shadow: 0 6px 24px rgba(255,51,102,0.4); }
+        .btn-gray { background: #e8ecf4; color: var(--text); }
+        .btn-gray:hover { background: linear-gradient(135deg, #dce0e8, #c8ccd4); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .image-card {
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+            transition: box-shadow 0.3s;
+        }
+        .image-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .image-card .preview {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #f0f2f5;
+            display: block;
+        }
+        .image-card .info { padding: 14px; }
+        .image-card .info h3 { font-size: 15px; margin-bottom: 4px; }
+        .image-card .info .meta { font-size: 12px; color: var(--text-soft); }
+        .image-card .actions { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(2px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 28px;
+            width: 750px;
+            max-width: 900px;
+            max-height: 95vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+        }
+        .modal h2 { font-size: 20px; margin-bottom: 20px; }
+        .modal .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-soft);
+            padding: 0 4px;
+        }
+        .modal .modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 700px) {
+            .modal .modal-grid { grid-template-columns: 1fr; }
+        }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--text-soft); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 9px 12px;
+            border: 2px solid #e0e4ec;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+        .form-group input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,208,132,0.08); }
+        .form-group input[type="color"] { height: 40px; padding: 3px; cursor: pointer; }
+        .form-group input[type="file"] { padding: 8px; border-style: dashed; cursor: pointer; }
+        .form-group input[type="file"]:hover { border-color: var(--green); }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        .form-row .form-group { margin-bottom: 6px; }
+        .form-row .form-group input { text-align: center; font-size: 13px; padding: 7px 6px; }
+        .form-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+        .preview-section { margin-top: 12px; display: none; }
+        .preview-section img { max-width: 100%; max-height: 180px; border-radius: 8px; border: 1px solid var(--border); }
+
+        .preview-canvas-wrap {
+            position: relative;
+            background: #f0f2f5;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .preview-canvas-wrap canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .preview-canvas-wrap .preview-label {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            pointer-events: none;
+        }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-soft); }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; color: #d0d5e0; }
+        .empty-state h3 { margin-bottom: 8px; color: var(--text); }
+        .success-msg, .error-msg { padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 12px; display: none; }
+        .success-msg { background: rgba(0,208,132,0.08); color: #008a5c; border: 1px solid rgba(0,208,132,0.2); }
+        .error-msg { background: rgba(255,51,102,0.08); color: #cc0033; border: 1px solid rgba(255,51,102,0.2); }
+
+        .change-pwd-section { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .change-pwd-section h3 { font-size: 14px; margin-bottom: 12px; color: var(--text-soft); }
+        .pwd-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .pwd-row input { padding: 8px 12px; border: 2px solid #e0e4ec; border-radius: 8px; font-size: 14px; outline: none; font-family: inherit; }
+        .pwd-row input:focus { border-color: var(--purple); }
+
+        .sync-section { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .sync-section h3 { font-size: 14px; margin-bottom: 12px; color: var(--text-soft); }
+        .sync-status { font-size: 12px; color: var(--text-soft); margin-top: 6px; }
+        .sync-status .connected { color: var(--green); font-weight: 700; }
+        .sync-status .disconnected { color: var(--pink); font-weight: 700; }
+
+        .column-editor-section {
+            margin-top: 20px;
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+        }
+        .column-editor-section h3 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: var(--text-soft);
+        }
+        .column-row {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .column-row .col-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .column-row .col-header .col-type { flex: 0 0 90px; }
+        .column-row .col-body {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+        .column-row .col-body label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-soft);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .column-row .col-body .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            align-items: center;
+        }
+        .column-row input[type=number] { width: 54px; padding: 4px 6px; border: 1.5px solid #e0e4ec; border-radius: 6px; font-size: 12px; }
+        .column-row input[type=text].col-label { width: 70px; padding: 4px 6px; border: 1.5px solid #e0e4ec; border-radius: 6px; font-size: 12px; }
+        .column-row .col-type { width: 90px; padding: 4px 6px; border: 1.5px solid #e0e4ec; border-radius: 6px; font-size: 12px; }
+        .column-row .col-logo-shape { width: 80px; padding: 4px 6px; border: 1.5px solid #e0e4ec; border-radius: 6px; font-size: 12px; }
+        .column-row .col-enabled { width: 18px; height: 18px; cursor: pointer; }
+        .column-row .col-color { width: 32px; height: 28px; padding: 2px; cursor: pointer; border: 1.5px solid #e0e4ec; border-radius: 6px; }
+        .column-row .col-font-family { width: 70px; padding: 4px 6px; border: 1.5px solid #e0e4ec; border-radius: 6px; font-size: 12px; }
+        .column-row .col-font-size { width: 50px; padding: 4px 6px; border: 1.5px solid #e0e4ec; border-radius: 6px; font-size: 12px; }
+        .column-row .col-font-weight { width: 70px; padding: 4px 6px; border: 1.5px solid #e0e4ec; border-radius: 6px; font-size: 12px; }
+        .column-row .col-logo-width { width: 50px; padding: 4px 6px; border: 1.5px solid #e0e4ec; border-radius: 6px; font-size: 12px; }
+        .column-row button.col-btn {
+            padding: 4px 8px;
+            font-size: 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            background: #f0f2f5;
+            cursor: pointer;
+            line-height: 1.4;
+            transition: background 0.2s;
+        }
+        .column-row button.col-btn:hover { background: #e0e4ec; }
+        .column-row .col-delete {
+            color: var(--pink);
+            font-weight: bold;
+            border-color: rgba(255,51,102,0.2);
+            margin-left: auto;
+        }
+        .column-row .col-delete:hover { background: rgba(255,51,102,0.08); }
+
+        @media (max-width: 700px) {
+            .admin-header { flex-direction: column; align-items: stretch; text-align: center; }
+            .admin-header .header-actions { justify-content: center; }
+            .image-grid { grid-template-columns: 1fr; }
+            .modal { padding: 16px; }
+            .form-row { grid-template-columns: repeat(3, 1fr); }
+            .modal-grid { grid-template-columns: 1fr; }
+            .column-row .col-body { gap: 8px; }
+            .column-row .field-group { min-width: 60px; }
+            .sync-section .pwd-row { flex-direction: column; align-items: stretch; }
+            .sync-section .pwd-row input { max-width: 100% !important; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="login-body" style="min-height:100vh;display:flex;">
+    <div class="login-box">
+        <h1>RAM BHAKT ESPORTS</h1>
+        <div id="loginModeBadge" style="font-size:12px;padding:4px 10px;border-radius:20px;display:inline-block;margin-bottom:12px;font-weight:600;"></div>
+        <div id="loginFirebaseFields">
+            <input type="email" id="loginEmail" placeholder="Firebase Auth email" autocomplete="email">
+            <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+        </div>
+        <div id="loginLocalFields" style="display:none;">
+            <input type="password" id="localPassword" placeholder="Local admin password" autocomplete="off">
+        </div>
+        <button onclick="handleLogin()"><i class="fas fa-lock-open"></i> Sign In</button>
+        <div class="login-error" id="loginError">Login failed. Check credentials.</div>
+        <div id="loginFirebaseSetup" style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;display:none;">
+            <p style="font-size:12px;color:var(--text-soft);margin-bottom:8px;"><i class="fas fa-cloud"></i> First time? Enter Firebase credentials to enable secure Auth:</p>
+            <input type="text" id="loginApiKey" placeholder="Firebase API Key" style="font-size:13px;">
+            <input type="text" id="loginProjectId" placeholder="Project ID" style="font-size:13px;">
+            <input type="text" id="loginDbUrl" placeholder="Database URL" style="font-size:13px;">
+            <button class="btn-gray btn-sm" onclick="saveLoginFirebaseConfig()" style="margin-top:4px;width:100%;">Save &amp; use Firebase Auth</button>
+            <p style="font-size:11px;color:var(--text-soft);margin-top:8px;margin-bottom:0;">
+                <i class="fas fa-info-circle"></i> After saving, refresh and sign in with your Firebase Auth email.
+            </p>
+        </div>
+        <p id="loginLocalHint" style="font-size:11px;color:var(--text-soft);margin-top:12px;margin-bottom:0;display:none;">
+            <i class="fas fa-info-circle"></i> Using local password until Firebase is configured.
+        </p>
+    </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" style="display:none;">
+    <div class="admin-header">
+        <h1><i class="fas fa-cog"></i> Admin Panel</h1>
+        <div class="header-actions">
+            <button class="btn-green" onclick="openAddModal()"><i class="fas fa-plus"></i> Add Image</button>
+            <button class="btn-purple" onclick="resetToDefaults()"><i class="fas fa-undo"></i> Reset Defaults</button>
+            <button class="btn-gray" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="successMsg" class="success-msg"></div>
+        <div id="errorMsg" class="error-msg"></div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+            <h2 style="font-size:20px;"><i class="fas fa-images" style="color:var(--purple);"></i> Image Templates</h2>
+            <span id="imageCount" style="font-size:13px;color:var(--text-soft);"></span>
+        </div>
+        <div id="imageGrid" class="image-grid"></div>
+
+        <!-- Cloud Sync -->
+        <div class="sync-section">
+            <h3><i class="fas fa-cloud-upload-alt"></i> Cloud Sync <span id="syncIndicator" style="font-size:12px;font-weight:400;"></span></h3>
+            <div class="pwd-row">
+                <input type="text" id="firebaseApiKey" placeholder="Firebase API Key" style="max-width:200px;">
+                <input type="text" id="firebaseProjectId" placeholder="Project ID" style="max-width:160px;">
+                <input type="text" id="firebaseDbUrl" placeholder="Database URL" style="max-width:260px;">
+                <button class="btn-green btn-sm" onclick="connectFirebase()"><i class="fas fa-link"></i> Connect</button>
+                <button class="btn-pink btn-sm" onclick="disconnectFirebase()"><i class="fas fa-unlink"></i> Disconnect</button>
+            </div>
+            <div class="sync-status" id="syncStatus"><span class="disconnected">Not connected</span> &mdash; configure Firebase above to sync across all devices in real time.</div>
+            <div style="margin-top:10px;">
+                <button class="btn-purple btn-sm" onclick="generateEmbedCode()"><i class="fas fa-code"></i> Get Embed Code</button>
+                <span style="font-size:11px;color:var(--text-soft);margin-left:6px;">Paste into <code>calculate.html</code> so all users see your uploads.</span>
+                <pre id="embedCodeOutput" style="display:none;margin-top:8px;background:#f0f2f5;padding:12px;border-radius:8px;font-size:12px;overflow-x:auto;text-align:left;white-space:pre-wrap;word-break:break-all;border:1px solid var(--border);font-family:monospace;"></pre>
+            </div>
+        </div>
+
+        <div class="change-pwd-section">
+            <h3><i class="fas fa-key"></i> Change Password</h3>
+            <div class="pwd-row">
+                <input type="password" id="currentPwdInput" placeholder="Current password">
+                <input type="password" id="newPwdInput" placeholder="New password">
+                <button class="btn-purple btn-sm" onclick="changePassword()">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="formModal">
+    <div class="modal">
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+        <h2 id="modalTitle">Add Image Template</h2>
+        <div id="modalError" class="error-msg"></div>
+        <input type="hidden" id="editId">
+        <input type="hidden" id="existingSrc">
+
+        <div class="modal-grid">
+            <div>
+                <div class="form-group">
+                    <label>Image Name</label>
+                    <input type="text" id="imgName" placeholder="e.g. 3pm, 6pm, Final">
+                </div>
+                <div class="form-group">
+                    <label>Upload Image</label>
+                    <input type="file" id="imgUpload" accept="image/png,image/jpeg,image/webp">
+                    <div class="preview-section" id="uploadPreviewSection">
+                        <img id="uploadPreview" alt="Preview">
+                    </div>
+                </div>
+                <div class="form-row" style="grid-template-columns:1fr 1fr;">
+                    <div class="form-group"><label>Start Y</label><input type="number" id="startY" value="233" class="preview-input"></div>
+                    <div class="form-group"><label>Row Height</label><input type="number" id="rowHeight" value="40" class="preview-input"></div>
+                </div>
+            </div>
+            <div>
+                <label style="font-size:12px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Live Preview</label>
+                <div class="preview-canvas-wrap">
+                    <span class="preview-label">768 x 768</span>
+                    <canvas id="previewCanvas" width="768" height="768"></canvas>
+                </div>
+                <p style="font-size:11px;color:var(--text-soft);margin-top:6px;">Adjust settings &mdash; preview updates in real time.</p>
+            </div>
+        </div>
+
+        <!-- Column Settings -->
+        <div class="column-editor-section">
+            <h3>Column Settings</h3>
+            <div id="columnEditorList"></div>
+            <div style="margin-top:8px;">
+                <button class="btn-green btn-sm" onclick="addColumnRow()"><i class="fas fa-plus"></i> Add Column</button>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn-green" onclick="saveImageConfig()"><i class="fas fa-save"></i> Save</button>
+            <button class="btn-gray" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const STORAGE_KEY = 'rbeAdminConfig';
+    const SESSION_KEY = 'rbeAdminAuthed';
+    const FIREBASE_KEY = 'rbeFirebaseConfig';
+    const DB_PATH = 'rbeConfig';
+
+    const DEFAULT_COLUMNS = [
+        { id: 'col_rank', type: 'rank', label: '#', enabled: true, x: 110, color: '#ffffff', fontFamily: 'Arial', fontSize: 14, fontWeight: 'bold', width: 30 },
+        { id: 'col_team', type: 'team', label: 'Team', enabled: true, x: 260, color: '#ffffff', fontFamily: 'Arial', fontSize: 14, fontWeight: 'bold', width: 120 },
+        { id: 'col_booyah', type: 'booyah', label: 'Booyah', enabled: true, x: 440, color: '#ffffff', fontFamily: 'Arial', fontSize: 14, fontWeight: 'bold', width: 50 },
+        { id: 'col_pp', type: 'pp', label: 'PP', enabled: true, x: 518, color: '#ffffff', fontFamily: 'Arial', fontSize: 14, fontWeight: 'bold', width: 40 },
+        { id: 'col_kp', type: 'kp', label: 'KP', enabled: true, x: 583, color: '#ffffff', fontFamily: 'Arial', fontSize: 14, fontWeight: 'bold', width: 40 },
+        { id: 'col_total', type: 'total', label: 'Total', enabled: true, x: 647, color: '#ffffff', fontFamily: 'Arial', fontSize: 14, fontWeight: 'bold', width: 50 }
+    ];
+
+    const SAMPLE_DATA = [
+        { rank: 1, team: 'TEAM ALPHA', kp: 12, pp: 12, booyah: 1, total: 24 },
+        { rank: 2, team: 'TEAM BRAVO', kp: 8, pp: 9, booyah: 0, total: 17 },
+        { rank: 3, team: 'TEAM CHARLIE', kp: 6, pp: 8, booyah: 0, total: 14 },
+        { rank: 4, team: 'TEAM DELTA', kp: 4, pp: 7, booyah: 0, total: 11 },
+        { rank: 5, team: 'TEAM ECHO', kp: 3, pp: 6, booyah: 0, total: 9 },
+        { rank: 6, team: 'TEAM FOXTROT', kp: 2, pp: 5, booyah: 0, total: 7 },
+        { rank: 7, team: 'TEAM GOLF', kp: 5, pp: 4, booyah: 0, total: 9 },
+        { rank: 8, team: 'TEAM HOTEL', kp: 3, pp: 3, booyah: 0, total: 6 },
+        { rank: 9, team: 'TEAM INDIA', kp: 2, pp: 2, booyah: 0, total: 4 },
+        { rank: 10, team: 'TEAM JULIET', kp: 1, pp: 1, booyah: 0, total: 2 },
+        { rank: 11, team: 'TEAM KILO', kp: 0, pp: 1, booyah: 0, total: 1 },
+        { rank: 12, team: 'TEAM LIMA', kp: 0, pp: 0, booyah: 0, total: 0 }
+    ];
+
+    // ─── Firebase ──────────────────────────────────────────────
+    let firebaseApp = null;
+
+    function getFirebaseConfig() {
+        try {
+            const raw = localStorage.getItem(FIREBASE_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return null;
+    }
+
+    function saveFirebaseConfigToLocal(cfg) {
+        localStorage.setItem(FIREBASE_KEY, JSON.stringify(cfg));
+    }
+
+    function removeFirebaseConfigFromLocal() {
+        localStorage.removeItem(FIREBASE_KEY);
+    }
+
+    function fillFirebaseInputs() {
+        const cfg = getFirebaseConfig();
+        if (cfg) {
+            document.getElementById('firebaseApiKey').value = cfg.apiKey || '';
+            document.getElementById('firebaseProjectId').value = cfg.projectId || '';
+            document.getElementById('firebaseDbUrl').value = cfg.databaseURL || '';
+        }
+    }
+
+    function updateSyncStatus(connected) {
+        const el = document.getElementById('syncStatus');
+        const ind = document.getElementById('syncIndicator');
+        if (connected) {
+            el.innerHTML = '<span class="connected">Connected</span> &mdash; config syncs to all devices in real time.';
+            ind.innerHTML = '<i class="fas fa-check-circle" style="color:var(--green);"></i>';
+        } else {
+            el.innerHTML = '<span class="disconnected">Not connected</span> &mdash; configure Firebase above to sync across all devices in real time.';
+            ind.innerHTML = '';
+        }
+    }
+
+    function connectFirebase() {
+        const apiKey = document.getElementById('firebaseApiKey').value.trim();
+        const projectId = document.getElementById('firebaseProjectId').value.trim();
+        const databaseURL = document.getElementById('firebaseDbUrl').value.trim();
+        if (!apiKey || !projectId || !databaseURL) {
+            showError('Fill all three Firebase fields (API Key, Project ID, Database URL).');
+            return;
+        }
+        const fbCfg = { apiKey, projectId, databaseURL, authDomain: projectId + '.firebaseapp.com' };
+        saveFirebaseConfigToLocal(fbCfg);
+        getOrCreateAdminApp(fbCfg);
+        if (firebaseApp && firebase.auth(firebaseApp).currentUser) {
+            pushConfigToFirebase(getAdminConfig());
+        }
+        updateSyncStatus(true);
+        showSuccess('Firebase config saved. Sign out and log in with Firebase Auth email to enable secure writes.');
+    }
+
+    function disconnectFirebase() {
+        if (firebaseApp) {
+            firebase.auth(firebaseApp).signOut().catch(() => {});
+            firebase.app('rbeAdmin').delete().catch(() => {});
+            firebaseApp = null;
+        }
+        removeFirebaseConfigFromLocal();
+        updateSyncStatus(false);
+        showSuccess('Firebase disconnected.');
+    }
+
+    function pushConfigToFirebase(config) {
+        if (!firebaseApp) return;
+        try {
+            const payload = { password: config.password, images: config.images.map(img => ({
+                id: img.id, name: img.name, src: img.src || '',
+                startY: img.startY, rowHeight: img.rowHeight,
+                columns: img.columns
+            }))};
+            firebase.database(firebaseApp).ref(DB_PATH).set(payload);
+        } catch (e) { console.warn('Firebase push failed:', e); }
+    }
+
+    function generateEmbedCode() {
+        const cfg = getFirebaseConfig();
+        if (!cfg || !cfg.apiKey || !cfg.projectId || !cfg.databaseURL) {
+            showError('Configure Firebase first (API Key, Project ID, Database URL).');
+            return;
+        }
+        const snippet = 'const PUBLIC_FIREBASE_CONFIG = ' + JSON.stringify({ apiKey: cfg.apiKey, authDomain: cfg.projectId + '.firebaseapp.com', projectId: cfg.projectId, databaseURL: cfg.databaseURL, storageBucket: cfg.projectId + '.firebasestorage.app', messagingSenderId: cfg.messagingSenderId || '', appId: cfg.appId || '' }, null, 2) + ';';
+        const el = document.getElementById('embedCodeOutput');
+        el.textContent = snippet;
+        el.style.display = 'block';
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        showSuccess('Embed code generated. Copy it and paste into calculate.html and index.html, then redeploy.');
+    }
+
+    function listenFirebase(callback) {
+        const cfg = getFirebaseConfig();
+        if (!cfg) { callback(null); return; }
+        try {
+            const app = firebase.initializeApp({ ...cfg, authDomain: cfg.projectId + '.firebaseapp.com' }, 'rbeReader');
+            firebase.database(app).ref(DB_PATH).on('value', snap => {
+                callback(snap.val());
+            });
+        } catch (e) {
+            console.warn('Firebase listener failed:', e);
+            callback(null);
+        }
+    }
+
+    // ─── Config ────────────────────────────────────────────────
+    function getDefaultConfig() {
+        return {
+            password: 'admin',
+            images: []
+        };
+    }
+
+    function getAdminConfig() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        const def = getDefaultConfig();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(def));
+        return def;
+    }
+
+    function saveAdminConfig(config) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+        document.dispatchEvent(new Event('rbeConfigChanged'));
+        pushConfigToFirebase(config);
+    }
+
+    // ─── Login Screen Mode Detection ───────────────────────────
+    function updateLoginMode() {
+        const fbCfg = getFirebaseConfig();
+        const hasFirebase = !!(fbCfg && fbCfg.apiKey);
+        document.getElementById('loginFirebaseFields').style.display = hasFirebase ? '' : 'none';
+        document.getElementById('loginLocalFields').style.display = hasFirebase ? 'none' : '';
+        document.getElementById('loginFirebaseSetup').style.display = hasFirebase ? 'none' : '';
+        document.getElementById('loginLocalHint').style.display = hasFirebase ? 'none' : '';
+        const badge = document.getElementById('loginModeBadge');
+        if (hasFirebase) {
+            badge.textContent = ' Firebase Auth';
+            badge.style.cssText = 'font-size:12px;padding:4px 10px;border-radius:20px;display:inline-block;margin-bottom:12px;font-weight:600;background:rgba(0,208,132,0.1);color:#008a5c;border:1px solid rgba(0,208,132,0.2);';
+        } else {
+            badge.textContent = ' Local Password (default: admin)';
+            badge.style.cssText = 'font-size:12px;padding:4px 10px;border-radius:20px;display:inline-block;margin-bottom:12px;font-weight:600;background:rgba(255,51,102,0.06);color:#cc0033;border:1px solid rgba(255,51,102,0.15);';
+        }
+    }
+
+    function saveLoginFirebaseConfig() {
+        const apiKey = document.getElementById('loginApiKey').value.trim();
+        const projectId = document.getElementById('loginProjectId').value.trim();
+        const databaseURL = document.getElementById('loginDbUrl').value.trim();
+        if (!apiKey || !projectId || !databaseURL) {
+            document.getElementById('loginError').textContent = 'Fill all three Firebase fields.';
+            document.getElementById('loginError').style.display = 'block';
+            return;
+        }
+        localStorage.setItem(FIREBASE_KEY, JSON.stringify({ apiKey, projectId, databaseURL }));
+        const errEl = document.getElementById('loginError');
+        errEl.textContent = 'Firebase saved! Refresh the page and sign in with your Firebase Auth email.';
+        errEl.style.cssText = 'color:#008a5c;font-size:13px;margin-top:8px;display:block;font-weight:600;';
+        updateLoginMode();
+    }
+
+    // ─── Login ─────────────────────────────────────────────────
+    function enterPanel() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        document.body.className = '';
+        renderImageGrid();
+        fillFirebaseInputs();
+        const fbCfg = getFirebaseConfig();
+        if (fbCfg) updateSyncStatus(true);
+        if (firebaseApp && firebase.auth(firebaseApp).currentUser) {
+            pushConfigToFirebase(getAdminConfig());
+        }
+    }
+
+    function getOrCreateAdminApp(fbCfg) {
+        if (!firebaseApp) {
+            try { firebaseApp = firebase.initializeApp({ ...fbCfg, authDomain: fbCfg.projectId + '.firebaseapp.com' }, 'rbeAdmin'); }
+            catch (e) { firebaseApp = firebase.app('rbeAdmin'); }
+        }
+        return firebaseApp;
+    }
+
+    function handleLogin() {
+        const errEl = document.getElementById('loginError');
+        errEl.style.display = 'none';
+
+        const fbCfg = getFirebaseConfig();
+        const hasFirebase = !!(fbCfg && fbCfg.apiKey);
+
+        if (hasFirebase) {
+            const email = document.getElementById('loginEmail').value.trim();
+            const pwd = document.getElementById('loginPassword').value;
+            if (!email || !pwd) {
+                errEl.textContent = 'Enter email and password.';
+                errEl.style.display = 'block';
+                return;
+            }
+            const app = getOrCreateAdminApp(fbCfg);
+            firebase.auth(app).signInWithEmailAndPassword(email, pwd)
+                .then(() => {
+                    sessionStorage.setItem(SESSION_KEY, '1');
+                    sessionStorage.setItem('rbeAdminEmail', email);
+                    enterPanel();
+                })
+                .catch(err => {
+                    errEl.textContent = 'Firebase Auth failed: ' + err.message;
+                    errEl.style.display = 'block';
+                });
+            return;
+        }
+
+        const pwd = document.getElementById('localPassword').value;
+        const config = getAdminConfig();
+        if (pwd === config.password) {
+            sessionStorage.setItem(SESSION_KEY, '1');
+            enterPanel();
+        } else {
+            errEl.textContent = 'Incorrect password. Default is "admin".';
+            errEl.style.display = 'block';
+        }
+    }
+
+    document.getElementById('loginPassword').addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleLogin();
+    });
+    document.getElementById('loginEmail').addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleLogin();
+    });
+    document.getElementById('localPassword').addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleLogin();
+    });
+
+    function handleLogout() {
+        sessionStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem('rbeAdminEmail');
+        if (firebaseApp) {
+            firebase.auth(firebaseApp).signOut().catch(() => {});
+        }
+        document.getElementById('adminPanel').style.display = 'none';
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('localPassword').value = '';
+        document.getElementById('loginError').style.display = 'none';
+        document.body.className = 'login-body';
+        updateLoginMode();
+    }
+
+    (function autoLogin() {
+        if (sessionStorage.getItem(SESSION_KEY) === '1') {
+            enterPanel();
+            return;
+        }
+        updateLoginMode();
+        const fbCfg = getFirebaseConfig();
+        if (fbCfg && fbCfg.apiKey) {
+            const app = getOrCreateAdminApp(fbCfg);
+            firebase.auth(app).onAuthStateChanged(user => {
+                if (user) {
+                    sessionStorage.setItem(SESSION_KEY, '1');
+                    sessionStorage.setItem('rbeAdminEmail', user.email || '');
+                    enterPanel();
+                }
+            });
+        }
+    })();
+
+    // ─── Image Grid ────────────────────────────────────────────
+    function renderImageGrid() {
+        const config = getAdminConfig();
+        const grid = document.getElementById('imageGrid');
+        const images = config.images || [];
+        document.getElementById('imageCount').textContent = images.length + ' template(s)';
+
+        if (images.length === 0) {
+            grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-image"></i><h3>No image templates</h3><p style="margin-bottom:16px;">Add your first background template to get started.</p><button class="btn-green" onclick="openAddModal()"><i class="fas fa-plus"></i> Add Image</button></div>';
+            return;
+        }
+
+        grid.innerHTML = images.map(img => {
+            const hasSrc = img.src && img.src.length > 100;
+            const previewSrc = hasSrc ? img.src : 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="180" viewBox="0 0 300 180"><rect fill="#f0f2f5" width="300" height="180"/><text x="150" y="90" text-anchor="middle" fill="#aaa" font-size="14" font-family="Arial">No image</text></svg>');
+            const colCount = (img.columns || []).length;
+            return '<div class="image-card">' +
+                '<img class="preview" src="' + previewSrc + '" alt="' + img.name + '" onerror="this.src=\'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="180"><rect fill="#f0f2f5" width="300" height="180"/><text x="150" y="90" text-anchor="middle" fill="#aaa" font-size="14">Broken</text></svg>') + '\'">' +
+                '<div class="info"><h3><i class="fas fa-image" style="color:var(--purple);font-size:12px;"></i> ' + img.name + '</h3>' +
+                '<div class="meta">' + colCount + ' column(s) &middot; Y: ' + img.startY + ' &middot; Row: ' + img.rowHeight + 'px</div></div>' +
+                '<div class="actions"><button class="btn-purple btn-sm" onclick="openEditModal(\'' + img.id + '\')"><i class="fas fa-edit"></i> Edit</button>' +
+                '<button class="btn-pink btn-sm" onclick="deleteImage(\'' + img.id + '\')"><i class="fas fa-trash-alt"></i> Delete</button></div></div>';
+        }).join('');
+    }
+
+    // ─── Column Editor ─────────────────────────────────────────
+    function renderColumnEditor(columns) {
+        const container = document.getElementById('columnEditorList');
+        container.innerHTML = '';
+        columns.forEach(col => {
+            const row = document.createElement('div');
+            row.className = 'column-row';
+            row.dataset.id = col.id;
+            row.innerHTML =
+                '<div class="col-header">' +
+                    '<button type="button" class="col-btn" onclick="moveColumn(this, -1)" title="Move up">\u2B06</button>' +
+                    '<button type="button" class="col-btn" onclick="moveColumn(this, 1)" title="Move down">\u2B07</button>' +
+                    '<select class="col-type" onchange="onColumnTypeChange(this)">' +
+                        '<option value="rank"' + (col.type === 'rank' ? ' selected' : '') + '>Rank</option>' +
+                        '<option value="team"' + (col.type === 'team' ? ' selected' : '') + '>Team</option>' +
+                        '<option value="booyah"' + (col.type === 'booyah' ? ' selected' : '') + '>Booyah</option>' +
+                        '<option value="pp"' + (col.type === 'pp' ? ' selected' : '') + '>PP</option>' +
+                        '<option value="kp"' + (col.type === 'kp' ? ' selected' : '') + '>KP</option>' +
+                        '<option value="total"' + (col.type === 'total' ? ' selected' : '') + '>Total</option>' +
+                        '<option value="logo"' + (col.type === 'logo' ? ' selected' : '') + '>Logo</option>' +
+                    '</select>' +
+                    '<button type="button" class="col-btn col-delete" onclick="this.closest(\'.column-row\').remove(); redrawPreview();" title="Delete column">\u2715</button>' +
+                '</div>' +
+                '<div class="col-body">' +
+                    '<div class="field-group"><label>Label</label><input type="text" class="col-label" value="' + col.label + '" placeholder="Label"></div>' +
+                    '<div class="field-group"><label>X</label><input type="number" class="col-x" value="' + col.x + '" placeholder="X"></div>' +
+                    '<div class="field-group"><label>Enabled</label><input type="checkbox" class="col-enabled"' + (col.enabled ? ' checked' : '') + '></div>' +
+                    '<div class="field-group"><label>Color</label><input type="color" class="col-color" value="' + (col.color || '#ffffff') + '"></div>' +
+                    '<div class="field-group"><label>Font</label><input type="text" class="col-font-family" value="' + (col.fontFamily || 'Arial') + '" placeholder="Font"></div>' +
+                    '<div class="field-group"><label>Size</label><input type="number" class="col-font-size" value="' + (col.fontSize || 14) + '" placeholder="Size"></div>' +
+                    '<div class="field-group"><label>Weight</label><select class="col-font-weight">' +
+                        '<option value="bold"' + ((col.fontWeight || 'bold') === 'bold' ? ' selected' : '') + '>Bold</option>' +
+                        '<option value="normal"' + (col.fontWeight === 'normal' ? ' selected' : '') + '>Normal</option>' +
+                    '</select></div>' +
+                    '<div class="field-group" id="logoFields_' + col.id + '" style="display:' + (col.type === 'logo' ? '' : 'none') + '">' +
+                        '<label>Size</label><input type="number" class="col-logo-width" placeholder="W" value="' + (col.width || 40) + '">' +
+                    '</div>' +
+                    '<div class="field-group" id="shapeFields_' + col.id + '" style="display:' + (col.type === 'logo' ? '' : 'none') + '">' +
+                        '<label>Shape</label><select class="col-logo-shape">' +
+                            '<option value="circle"' + ((col.logoShape || 'circle') === 'circle' ? ' selected' : '') + '>Circle</option>' +
+                            '<option value="square"' + (col.logoShape === 'square' ? ' selected' : '') + '>Square</option>' +
+                            '<option value="rounded"' + (col.logoShape === 'rounded' ? ' selected' : '') + '>Rounded</option>' +
+                        '</select>' +
+                    '</div>' +
+                    '<div class="field-group" id="xOffFields_' + col.id + '" style="display:' + (col.type === 'logo' ? '' : 'none') + '">' +
+                        '<label>X Off</label><input type="number" class="col-logo-x" value="' + (col.logoX || 0) + '" placeholder="0">' +
+                    '</div>' +
+                    '<div class="field-group" id="yOffFields_' + col.id + '" style="display:' + (col.type === 'logo' ? '' : 'none') + '">' +
+                        '<label>Y Off</label><input type="number" class="col-logo-y" value="' + (col.logoY != null ? col.logoY : -2) + '" placeholder="-2">' +
+                    '</div>' +
+                '</div>';
+            container.appendChild(row);
+        });
+        attachColumnPreviewListeners();
+    }
+
+    function collectColumnsFromUI() {
+        const rows = document.querySelectorAll('#columnEditorList .column-row');
+        const columns = [];
+        rows.forEach(row => {
+            const type = row.querySelector('.col-type').value;
+            const col = {
+                id: row.dataset.id || 'col_' + Date.now() + '_' + Math.random().toString(16).slice(2, 6),
+                type: type,
+                label: row.querySelector('.col-label').value,
+                enabled: row.querySelector('.col-enabled').checked,
+                x: parseInt(row.querySelector('.col-x').value) || 0,
+                color: row.querySelector('.col-color').value,
+                fontFamily: row.querySelector('.col-font-family').value || 'Arial',
+                fontSize: parseInt(row.querySelector('.col-font-size').value) || 14,
+                fontWeight: row.querySelector('.col-font-weight').value
+            };
+            if (type === 'logo') {
+                col.width = parseInt(row.querySelector('.col-logo-width').value) || 40;
+                col.logoShape = row.querySelector('.col-logo-shape').value || 'circle';
+                col.logoX = parseInt(row.querySelector('.col-logo-x').value) || 0;
+                const yv = parseInt(row.querySelector('.col-logo-y').value);
+                col.logoY = isNaN(yv) ? -2 : yv;
+            }
+            columns.push(col);
+        });
+        return columns;
+    }
+
+    function onColumnTypeChange(select) {
+        const row = select.closest('.column-row');
+        const id = row.dataset.id;
+        ['logoFields_', 'shapeFields_', 'xOffFields_', 'yOffFields_'].forEach(prefix => {
+            const el = document.getElementById(prefix + id);
+            if (el) el.style.display = select.value === 'logo' ? '' : 'none';
+        });
+        const labelInput = row.querySelector('.col-label');
+        if (select.value === 'logo') {
+            labelInput.value = 'Logo';
+        } else {
+            labelInput.value = select.value.charAt(0).toUpperCase() + select.value.slice(1);
+        }
+        redrawPreview();
+    }
+
+    function moveColumn(btn, direction) {
+        const row = btn.closest('.column-row');
+        const container = document.getElementById('columnEditorList');
+        const index = Array.from(container.children).indexOf(row);
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= container.children.length) return;
+        if (direction < 0) {
+            container.insertBefore(row, container.children[newIndex]);
+        } else {
+            container.insertBefore(row, container.children[newIndex + 1]);
+        }
+        redrawPreview();
+    }
+
+    function addColumnRow() {
+        const columns = collectColumnsFromUI();
+        columns.push({
+            id: 'col_' + Date.now(),
+            type: 'rank',
+            label: 'Rank',
+            enabled: true,
+            x: 110,
+            color: '#ffffff',
+            fontFamily: 'Arial',
+            fontSize: 14,
+            fontWeight: 'bold',
+            logoShape: 'circle',
+            logoX: 0,
+            logoY: -2
+        });
+        renderColumnEditor(columns);
+        redrawPreview();
+    }
+
+    // ─── Live Preview ──────────────────────────────────────────
+    function redrawPreview() {
+        const canvas = document.getElementById('previewCanvas');
+        const ctx = canvas.getContext('2d');
+        const w = 768, h = 768;
+        ctx.clearRect(0, 0, w, h);
+
+        const fileInput = document.getElementById('imgUpload');
+        const src = (fileInput.files && fileInput.files[0])
+            ? (document.getElementById('uploadPreview').src || '')
+            : (document.getElementById('existingSrc').value || '');
+        const columns = collectColumnsFromUI().filter(c => c.enabled);
+        const startY = parseInt(document.getElementById('startY').value) || 0;
+        const rowHeight = parseInt(document.getElementById('rowHeight').value) || 40;
+
+        if (src && src.length > 100) {
+            const bgImg = new Image();
+            bgImg.onload = function() {
+                ctx.drawImage(bgImg, 0, 0, w, h);
+                drawPreviewText(ctx, columns, startY, rowHeight);
+            };
+            bgImg.onerror = function() { drawPreviewText(ctx, columns, startY, rowHeight); };
+            bgImg.src = src;
+        } else {
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#666';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('No background image uploaded', w / 2, h / 2);
+            drawPreviewText(ctx, columns, startY, rowHeight);
+        }
+    }
+
+    function drawPreviewText(ctx, columns, startY, rowHeight) {
+        ctx.textBaseline = 'middle';
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        SAMPLE_DATA.forEach((team, i) => {
+            const rowY = (startY || 233) + i * (rowHeight || 40);
+            columns.forEach(col => {
+                if (col.type === 'logo') {
+                    const size = col.width || 40;
+                    const shape = col.logoShape || 'circle';
+                    const cx = col.x + (col.logoX || 0);
+                    const cy = rowY + (col.logoY != null ? col.logoY : -2);
+                    ctx.fillStyle = '#555';
+                    ctx.beginPath();
+                    if (shape === 'square') {
+                        ctx.rect(cx - size/2, cy - size/2, size, size);
+                    } else if (shape === 'rounded') {
+                        const r = size/5;
+                        const x2 = cx - size/2, y2 = cy - size/2, w = size, h = size;
+                        ctx.moveTo(x2 + r, y2);
+                        ctx.lineTo(x2 + w - r, y2);
+                        ctx.quadraticCurveTo(x2 + w, y2, x2 + w, y2 + r);
+                        ctx.lineTo(x2 + w, y2 + h - r);
+                        ctx.quadraticCurveTo(x2 + w, y2 + h, x2 + w - r, y2 + h);
+                        ctx.lineTo(x2 + r, y2 + h);
+                        ctx.quadraticCurveTo(x2, y2 + h, x2, y2 + h - r);
+                        ctx.lineTo(x2, y2 + r);
+                        ctx.quadraticCurveTo(x2, y2, x2 + r, y2);
+                    } else {
+                        ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+                    }
+                    ctx.fill();
+                    ctx.fillStyle = '#aaa';
+                    ctx.font = '10px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('Logo', cx, cy);
+                } else {
+                    ctx.fillStyle = col.color || '#ffffff';
+                    ctx.font = (col.fontWeight || 'bold') + ' ' + (col.fontSize || 14) + 'px ' + (col.fontFamily || 'Arial');
+                    ctx.textAlign = 'center';
+                    let display = '';
+                    if (col.type === 'rank') display = team.rank;
+                    else if (col.type === 'team') display = team.team;
+                    else if (col.type === 'booyah') display = String(team.booyah).padStart(2, '0');
+                    else if (col.type === 'pp') display = String(team.pp).padStart(2, '0');
+                    else if (col.type === 'kp') display = String(team.kp).padStart(2, '0');
+                    else if (col.type === 'total') display = String(team.total).padStart(2, '0');
+                    ctx.fillText(String(display), col.x, rowY);
+                }
+            });
+        });
+    }
+
+    function attachColumnPreviewListeners() {
+        document.querySelectorAll('#columnEditorList input, #columnEditorList select').forEach(el => {
+            el.removeEventListener('input', redrawPreview);
+            el.removeEventListener('change', redrawPreview);
+            el.addEventListener('input', redrawPreview);
+            el.addEventListener('change', redrawPreview);
+        });
+    }
+
+    function attachPreviewListeners() {
+        document.querySelectorAll('#imgUpload, #startY, #rowHeight').forEach(el => {
+            el.addEventListener('input', redrawPreview);
+            el.addEventListener('change', redrawPreview);
+        });
+    }
+
+    // ─── Image Upload Preview ──────────────────────────────────
+    document.getElementById('imgUpload').addEventListener('change', function() {
+        const file = this.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('uploadPreview').src = e.target.result;
+            document.getElementById('uploadPreviewSection').style.display = 'block';
+            setTimeout(redrawPreview, 100);
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // ─── Open Add Modal ────────────────────────────────────────
+    function openAddModal() {
+        document.getElementById('modalTitle').textContent = 'Add Image Template';
+        document.getElementById('editId').value = '';
+        document.getElementById('existingSrc').value = '';
+        document.getElementById('modalError').style.display = 'none';
+        document.getElementById('imgName').value = '';
+        document.getElementById('imgUpload').value = '';
+        document.getElementById('uploadPreviewSection').style.display = 'none';
+        document.getElementById('uploadPreview').src = '';
+        document.getElementById('startY').value = '233';
+        document.getElementById('rowHeight').value = '40';
+
+        renderColumnEditor(DEFAULT_COLUMNS.map(c => ({ ...c })));
+
+        document.getElementById('formModal').classList.add('active');
+        attachPreviewListeners();
+        setTimeout(() => { redrawPreview(); }, 100);
+    }
+
+    // ─── Open Edit Modal ───────────────────────────────────────
+    function openEditModal(id) {
+        const config = getAdminConfig();
+        const img = (config.images || []).find(i => i.id === id);
+        if (!img) return;
+
+        document.getElementById('modalTitle').textContent = 'Edit Image Template';
+        document.getElementById('editId').value = id;
+        document.getElementById('existingSrc').value = img.src || '';
+        document.getElementById('modalError').style.display = 'none';
+        document.getElementById('imgName').value = img.name || '';
+        document.getElementById('imgUpload').value = '';
+        if (img.src && img.src.length > 100) {
+            document.getElementById('uploadPreview').src = img.src;
+            document.getElementById('uploadPreviewSection').style.display = 'block';
+        } else {
+            document.getElementById('uploadPreviewSection').style.display = 'none';
+        }
+        document.getElementById('startY').value = img.startY || 233;
+        document.getElementById('rowHeight').value = img.rowHeight || 40;
+
+        const columns = (img.columns && img.columns.length > 0) ? img.columns : DEFAULT_COLUMNS.map(c => ({ ...c }));
+        renderColumnEditor(columns);
+
+        document.getElementById('formModal').classList.add('active');
+        attachPreviewListeners();
+        setTimeout(() => { redrawPreview(); }, 100);
+    }
+
+    // ─── Close Modal ───────────────────────────────────────────
+    function closeModal() {
+        document.getElementById('formModal').classList.remove('active');
+    }
+
+    // ─── Save ──────────────────────────────────────────────────
+    function saveImageConfig() {
+        const editId = document.getElementById('editId').value;
+        const name = document.getElementById('imgName').value.trim();
+        const startY = parseInt(document.getElementById('startY').value) || 0;
+        const rowHeight = parseInt(document.getElementById('rowHeight').value) || 0;
+        const fileInput = document.getElementById('imgUpload');
+        const existingSrc = document.getElementById('existingSrc').value;
+        const columns = collectColumnsFromUI();
+
+        if (!name) { showModalError('Image name is required.'); return; }
+        if (columns.length === 0) { showModalError('At least one column is required.'); return; }
+
+        const config = getAdminConfig();
+        let images = config.images || [];
+
+        const saveFn = (src) => {
+            if (editId) {
+                const idx = images.findIndex(i => i.id === editId);
+                if (idx !== -1) images[idx] = { ...images[idx], name, src: src || images[idx].src, startY, rowHeight, columns };
+            } else {
+                images.push({ id: 'img_' + Date.now() + '_' + Math.random().toString(16).slice(2, 6), name, src: src || '', startY, rowHeight, columns });
+            }
+            config.images = images;
+            saveAdminConfig(config);
+            closeModal();
+            renderImageGrid();
+            showSuccess(editId ? 'Image template updated.' : 'Image template added.');
+        };
+
+        if (fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) { saveFn(e.target.result); };
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            saveFn(existingSrc);
+        }
+    }
+
+    // ─── Delete ────────────────────────────────────────────────
+    function deleteImage(id) {
+        if (!confirm('Delete this image template?')) return;
+        const config = getAdminConfig();
+        config.images = (config.images || []).filter(i => i.id !== id);
+        saveAdminConfig(config);
+        renderImageGrid();
+        showSuccess('Image template deleted.');
+    }
+
+    // ─── Reset ─────────────────────────────────────────────────
+    function resetToDefaults() {
+        if (!confirm('Reset all image templates to default values? This will not change your password.')) return;
+        const config = getAdminConfig();
+        const def = getDefaultConfig();
+        config.images = def.images;
+        saveAdminConfig(config);
+        renderImageGrid();
+        showSuccess('Reset to default (no templates).');
+    }
+
+    // ─── Change Password ───────────────────────────────────────
+    function changePassword() {
+        const current = document.getElementById('currentPwdInput').value;
+        const newPwd = document.getElementById('newPwdInput').value;
+        if (!current || !newPwd) { showError('Fill both password fields.'); return; }
+        if (newPwd.length < 3) { showError('Password must be at least 3 characters.'); return; }
+        const config = getAdminConfig();
+        if (current !== config.password) { showError('Current password is incorrect.'); return; }
+        config.password = newPwd;
+        saveAdminConfig(config);
+        document.getElementById('currentPwdInput').value = '';
+        document.getElementById('newPwdInput').value = '';
+        showSuccess('Password changed successfully.');
+    }
+
+    // ─── Helpers ───────────────────────────────────────────────
+    function showSuccess(msg) {
+        const el = document.getElementById('successMsg');
+        el.textContent = msg; el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 3000);
+    }
+    function showError(msg) {
+        const el = document.getElementById('errorMsg');
+        el.textContent = msg; el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 3000);
+    }
+    function showModalError(msg) {
+        const el = document.getElementById('modalError');
+        el.textContent = msg; el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    document.getElementById('formModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+</script>
+</body>
+</html>

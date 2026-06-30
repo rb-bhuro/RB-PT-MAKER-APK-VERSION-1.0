@@ -1,0 +1,1100 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="theme-color" content="#00d084" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="RB PT Gen" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icon.svg" />
+<title>RAM BHAKT ESPORTS PT GENERATOR</title>
+
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+<!-- FontAwesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+<!-- Gaming font -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<!-- AOS Animation -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet" />
+
+<!-- SheetJS for Excel -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script>
+// ─── PUBLIC FIREBASE CONFIG ──────────────────────────────
+const PUBLIC_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDJunruQxvJLc6SwibaSFU48lxHDxgrrEk",
+  authDomain: "rb-pt-maker.firebaseapp.com",
+  databaseURL: "https://rb-pt-maker-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "rb-pt-maker",
+  storageBucket: "rb-pt-maker.firebasestorage.app",
+  messagingSenderId: "1015737782816",
+  appId: "1:1015737782816:web:1390daceebdbae6995a245"
+};
+</script>
+
+<style>
+  :root {
+    --primary: #00d084;
+    --accent: #ff3366;
+    --bg-light: #f4f6fb;
+    --panel: rgba(255, 255, 255, 0.92);
+    --line: rgba(0, 0, 0, 0.08);
+    --pink: #ff3366;
+    --purple: #7c3aed;
+    --text-dark: #1a1a2e;
+    --text-soft: #4a4a6a;
+    --radius: 14px;
+  }
+
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Inter', 'Orbitron', sans-serif;
+    background: var(--bg-light);
+    color: var(--text-dark);
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(0,208,132,0.07) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(124,58,237,0.07) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(255,51,102,0.05) 0%, transparent 50%);
+    z-index: -3;
+    pointer-events: none;
+  }
+
+  .bg-video {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: -4;
+    opacity: 0.08;
+    pointer-events: none;
+  }
+
+  #particles-js {
+    position: fixed; width: 100%; height: 100%;
+    z-index: -1;
+    opacity: 0.18;
+  }
+
+  .glow-orb {
+    position: fixed;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(0,208,132,0.12), transparent 70%);
+    border-radius: 50%;
+    filter: blur(70px);
+    animation: float 15s ease-in-out infinite;
+    z-index: -2;
+  }
+  .orb1 { top: 20%; left: 10%; animation-delay: 0s; background: radial-gradient(circle, rgba(124,58,237,0.12), transparent 70%); }
+  .orb2 { bottom: 15%; right: 15%; animation-delay: 6s; background: radial-gradient(circle, rgba(0,208,132,0.12), transparent 70%); }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) translateX(0); }
+    50% { transform: translateY(-35px) translateX(25px); }
+  }
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 4px 20px rgba(0,208,132,0.2); }
+    50% { box-shadow: 0 4px 40px rgba(0,208,132,0.5); }
+  }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* ─── Top Bar ───────────────────────────── */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: var(--panel);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .top-bar .brand {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(0.9rem, 3vw, 1.3rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, #00d084, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-decoration: none;
+  }
+  .top-bar .nav-btns { display: flex; gap: 8px; align-items: center; }
+  .top-bar .nav-btns button, .top-bar .nav-btns a {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-login {
+    background: linear-gradient(135deg, var(--primary), #00b894);
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(0,208,132,0.25);
+  }
+  .btn-login:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,208,132,0.4); }
+  .btn-profile {
+    background: linear-gradient(135deg, var(--purple), #6d28d9);
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(124,58,237,0.25);
+  }
+  .btn-profile:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(124,58,237,0.4); }
+  .btn-calc-top {
+    background: linear-gradient(135deg, var(--primary), #19a7ce);
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(0,208,132,0.3);
+  }
+  .btn-calc-top:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,208,132,0.45); }
+
+  /* ─── Container ─────────────────────────── */
+  .container-home {
+    position: relative;
+    z-index: 10;
+    padding: 30px 20px 50px;
+    max-width: 800px;
+    margin: 30px auto;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.06);
+    backdrop-filter: blur(14px);
+    text-align: center;
+    border: 1px solid var(--line);
+  }
+
+  h1.server-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.6rem, 5vw, 3rem);
+    background: linear-gradient(135deg, #00d084, #7c3aed, #ff3366);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientMove 5s ease infinite;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  @keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    33% { background-position: 100% 50%; }
+    66% { background-position: 0% 100%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .subtitle {
+    font-size: clamp(0.85rem, 2vw, 1.1rem);
+    color: var(--text-soft);
+    margin-bottom: 30px;
+    font-weight: 400;
+  }
+
+  /* ─── Cards grid ────────────────────────── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 20px 0;
+  }
+  .card-grid .card-item {
+    background: rgba(0,208,132,0.04);
+    border: 1px solid rgba(0,208,132,0.15);
+    border-radius: var(--radius);
+    padding: 20px 14px;
+    text-decoration: none;
+    color: var(--text-dark);
+    transition: all 0.25s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-grid .card-item i { font-size: 2rem; }
+  .card-grid .card-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,208,132,0.15);
+    border-color: var(--primary);
+  }
+  .card-item .card-label { font-weight: 600; font-size: 0.9rem; }
+  .card-item .card-desc { font-size: 0.75rem; color: var(--text-soft); }
+
+  .card-grid .card-item.purple i { color: var(--purple); }
+  .card-grid .card-item.green i { color: var(--primary); }
+  .card-grid .card-item.pink i { color: var(--pink); }
+
+  /* Full width cards */
+  .card-grid .card-item.full { grid-column: 1 / -1; }
+
+  @media (max-width: 500px) {
+    .card-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ─── Buttons ───────────────────────────── */
+  .btn-esports {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 24px;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), #19a7ce);
+    box-shadow: 0 4px 15px rgba(0,208,132,0.3);
+    transition: transform 0.25s, box-shadow 0.25s;
+    cursor: pointer;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    animation: glowPulse 3s infinite;
+  }
+  .btn-esports:hover {
+    transform: scale(1.05) translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,208,132,0.5);
+    animation: none;
+  }
+  .btn-esports.secondary {
+    background: linear-gradient(135deg, var(--purple), #5b21b6);
+    box-shadow: 0 4px 15px rgba(124,58,237,0.3);
+    animation: none;
+  }
+  .btn-esports.secondary:hover {
+    box-shadow: 0 12px 40px rgba(124,58,237,0.5);
+  }
+  .btn-esports.danger {
+    background: linear-gradient(135deg, var(--pink), #cc0033);
+    box-shadow: 0 4px 15px rgba(255,51,102,0.3);
+    animation: none;
+  }
+  .btn-esports.danger:hover {
+    box-shadow: 0 12px 40px rgba(255,51,102,0.5);
+  }
+
+  /* ─── Social ────────────────────────────── */
+  .social {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .social a {
+    font-size: 2rem;
+    color: var(--text-soft);
+    transition: transform 0.3s, color 0.3s;
+  }
+  .social a:hover {
+    color: var(--primary);
+    transform: scale(1.25) rotate(6deg);
+  }
+
+  /* ─── Auth Overlay ──────────────────────── */
+  #authOverlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  #authPanel {
+    display: none;
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 30px 24px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  #authPanel .auth-close {
+    position: absolute;
+    top: 12px; right: 16px;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    color: var(--text-soft);
+    cursor: pointer;
+    padding: 4px;
+  }
+  #authPanel h2 {
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+    color: var(--text-dark);
+  }
+  #authPanel .auth-step { display: none; }
+  #authPanel .auth-step.active { display: block; }
+  #authPanel input {
+    width: 100%;
+    padding: 12px 14px;
+    margin: 8px 0 16px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+  }
+  #authPanel input:focus { outline: none; border-color: var(--primary); }
+  #authPanel label { font-weight: 600; font-size: 0.85rem; color: var(--text-soft); }
+  #authPanel .auth-btn {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.25s, box-shadow 0.25s;
+    margin: 6px 0;
+  }
+  #authPanel .auth-btn.primary { background: linear-gradient(135deg, var(--primary), #00b894); color: #fff; box-shadow: 0 4px 16px rgba(0,208,132,0.25); }
+  #authPanel .auth-btn.primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,208,132,0.4); }
+  #authPanel .auth-btn.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  #authPanel .auth-btn.secondary { background: linear-gradient(135deg, var(--purple), #6d28d9); color: #fff; box-shadow: 0 4px 16px rgba(124,58,237,0.25); }
+  #authPanel .auth-btn.secondary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(124,58,237,0.4); }
+  #authPanel .auth-btn.outline { background: transparent; color: var(--text-soft); border: 1.5px solid var(--line); }
+  #authPanel .auth-btn.outline:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-1px); }
+  #authPanel .auth-toggle { text-align: center; margin-top: 14px; font-size: 0.85rem; color: var(--text-soft); }
+  #authPanel .auth-toggle a { color: var(--primary); cursor: pointer; text-decoration: underline; }
+  #authPanel .auth-error { color: var(--pink); font-size: 0.8rem; margin: 6px 0; text-align: center; display: none; }
+  #authPanel .auth-success { color: var(--primary); font-size: 0.85rem; text-align: center; }
+  #authPanel .otp-row { display: flex; gap: 10px; align-items: center; }
+  #authPanel .otp-row input { flex: 1; text-align: center; font-size: 1.3rem; letter-spacing: 6px; }
+
+  /* ─── Profile Panel ─────────────────────── */
+  #profileOverlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  #profilePanel {
+    display: none;
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 30px 24px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  #profilePanel .profile-close {
+    float: right;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    color: var(--text-soft);
+    cursor: pointer;
+    padding: 4px;
+  }
+  #profilePanel .profile-avatar {
+    width: 70px; height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #fff;
+    font-weight: 700;
+    margin: 0 auto 16px;
+  }
+  #profilePanel h2 { text-align: center; font-family: 'Orbitron', sans-serif; font-size: 1.2rem; }
+  #profilePanel .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  #profilePanel .stat-card {
+    background: var(--bg-light);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  #profilePanel .stat-card .num { font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+  #profilePanel .stat-card .label { font-size: 0.75rem; color: var(--text-soft); }
+
+  /* ─── Merge Section (kept) ──────────────── */
+  .file-input-wrapper { margin: 20px 0; text-align: center; }
+  #fileInput { display: none; }
+  .file-list {
+    margin: 15px 0;
+    max-height: 200px;
+    overflow-y: auto;
+    text-align: left;
+    background: rgba(0,208,132,0.04);
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0,208,132,0.2);
+  }
+  .file-item {
+    padding: 8px 12px;
+    margin: 4px 0;
+    background: rgba(124,58,237,0.06);
+    border-left: 3px solid var(--accent);
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+  }
+  .file-item button {
+    background: linear-gradient(135deg, #ff3366, #cc0033);
+    border: none;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .status-msg { margin: 15px 0; padding: 12px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; }
+  .status-msg.success { background: rgba(0,208,132,0.08); border: 1px solid var(--primary); color: #008a5c; }
+  .status-msg.error { background: rgba(255,51,102,0.08); border: 1px solid var(--pink); color: #cc0033; }
+  .status-msg.info { background: rgba(124,58,237,0.06); border: 1px solid var(--purple); color: var(--text-soft); }
+  .merged-table-container {
+    margin-top: 20px;
+    max-height: 350px;
+    overflow-y: auto;
+    border-radius: 12px;
+    border: 1px solid rgba(0,208,132,0.2);
+    font-size: 0.85rem;
+  }
+  .merged-table-container table { background: #fff; margin-bottom: 0; }
+  .merged-table-container thead { position: sticky; top: 0; }
+  .merged-table-container thead tr { background: linear-gradient(135deg, #7c3aed, #00d084) !important; }
+  .merged-table-container th { border: 1px solid rgba(0,0,0,0.06); padding: 10px; text-align: center; color: #fff; font-weight: 700; }
+  .merged-table-container td { border: 1px solid rgba(0,0,0,0.05); padding: 8px; text-align: center; }
+  .merged-table-container tbody tr:hover td { background: rgba(0,208,132,0.03); }
+
+  /* ─── Toast ─────────────────────────────── */
+  .toast-msg {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-dark);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    z-index: 99999;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    max-width: 90vw;
+    text-align: center;
+  }
+  .toast-msg.show { opacity: 1; }
+
+  /* ─── Responsive ────────────────────────── */
+  @media (max-width: 768px) {
+    .container-home { margin: 16px 12px; padding: 20px 14px 40px; }
+    .top-bar { padding: 10px 14px; }
+    .top-bar .nav-btns button, .top-bar .nav-btns a {
+      padding: 6px 10px;
+      font-size: 0.75rem;
+    }
+    #authPanel { padding: 24px 18px; }
+    .subtitle { margin-bottom: 20px; }
+    .social a { font-size: 1.5rem; }
+  }
+
+  @media (max-width: 400px) {
+    .top-bar .brand { font-size: 0.75rem; }
+    .top-bar .nav-btns { gap: 4px; }
+    .top-bar .nav-btns button, .top-bar .nav-btns a {
+      padding: 5px 8px;
+      font-size: 0.7rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Background Video -->
+  <video autoplay muted loop class="bg-video" playsinline>
+    <source src="ff_bg.mp4" type="video/mp4" />
+  </video>
+
+  <!-- Particles -->
+  <div id="particles-js"></div>
+  <div class="glow-orb orb1"></div>
+  <div class="glow-orb orb2"></div>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <a href="index.html" class="brand"><i class="fas fa-trophy"></i> RB ESPORTS</a>
+    <div class="nav-btns">
+      <a href="calculate.html" class="btn-calc-top"><i class="fas fa-calculator"></i> <span class="d-none d-sm-inline">Calculator</span></a>
+      <button class="btn-login" id="topLoginBtn" onclick="window.rbAuth?.showAuthUI('login')"><i class="fas fa-sign-in-alt"></i> <span class="d-none d-sm-inline">Login</span></button>
+      <button class="btn-profile" id="topProfileBtn" style="display:none;" onclick="showProfile()"><i class="fas fa-user"></i> <span class="d-none d-sm-inline" id="profileNameTop">Profile</span></button>
+    </div>
+  </div>
+
+  <!-- Auth Overlay -->
+  <div id="authOverlay" onclick="if(event.target===this)window.rbAuth?.hideAuthUI()">
+    <div id="authPanel">
+      <button class="auth-close" onclick="window.rbAuth?.hideAuthUI()">&times;</button>
+      <h2 id="authTitle">Login</h2>
+
+      <!-- Step 1: Email -->
+      <div class="auth-step" id="authStepEmail">
+        <label>Email Address</label>
+        <input type="email" id="authEmail" placeholder="you@example.com" inputmode="email" />
+        <div class="auth-error" id="authEmailError"></div>
+        <button class="auth-btn primary" id="authSendLinkBtn" onclick="handleSendEmailLink()">Send Sign-In Link</button>
+        <div class="auth-toggle" id="authToggleText">
+          <span id="authToggleLabel">New here?</span> <a id="authToggleLink" onclick="toggleAuthMode()">Sign Up</a>
+        </div>
+      </div>
+
+      <!-- Step 2: Wait for email -->
+      <div class="auth-step" id="authStepWait">
+        <div class="auth-success" style="text-align:center;padding:20px 0;">
+          <i class="fas fa-envelope" style="font-size:2.5rem;color:var(--primary);"></i>
+          <p style="margin:16px 0 8px;font-weight:600;">Check your email</p>
+          <p style="font-size:0.85rem;color:var(--text-soft);">We sent a sign-in link to <strong id="authSentEmailDisplay"></strong></p>
+          <p style="font-size:0.8rem;color:var(--text-soft);margin-top:4px;">Click the link in the email to sign in.</p>
+        </div>
+        <button class="auth-btn outline" onclick="window.showAuthStep('Email');document.getElementById('authEmail').value=''">Use different email</button>
+      </div>
+
+      <!-- Step 3: Profile (new users only) -->
+      <div class="auth-step" id="authStepProfile">
+        <label>Your Name</label>
+        <input type="text" id="authName" placeholder="Enter your name" />
+        <label>Phone Number</label>
+        <input type="tel" id="authPhone" placeholder="+91 98765 43210" />
+        <div class="auth-error" id="authProfileError"></div>
+        <button class="auth-btn secondary" id="authCompleteBtn" onclick="handleCompleteProfile()"><i class="fas fa-check"></i> Start Using RB</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Overlay -->
+  <div id="profileOverlay" onclick="if(event.target===this)hideProfile()">
+    <div id="profilePanel">
+      <button class="profile-close" onclick="hideProfile()">&times;</button>
+      <div class="profile-avatar" id="profileAvatar">R</div>
+      <h2 id="profileDisplayName">User</h2>
+      <p style="text-align:center;color:var(--text-soft);font-size:0.85rem;" id="profileEmail"></p>
+      <p style="text-align:center;color:var(--text-soft);font-size:0.85rem;" id="profilePhone"></p>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="num" id="statTournaments">0</div><div class="label">Tournaments</div></div>
+        <div class="stat-card"><div class="num" id="statMatches">0</div><div class="label">Saved Matches</div></div>
+      </div>
+      <button class="auth-btn outline" onclick="handleMigrateData()" id="migrateBtn" style="display:none;"><i class="fas fa-cloud-upload-alt"></i> Upload Local Data to Cloud</button>
+      <button class="auth-btn danger" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-msg" id="toastMsg"></div>
+
+  <!-- Main Content -->
+  <div class="container-home" data-aos="zoom-in">
+    <h1 class="server-name">RAM BHAKT ESPORTS</h1>
+    <p class="subtitle">Free Fire tournament points, match history, and standings generator</p>
+
+    <div class="card-grid">
+      <a href="calculate.html" class="card-item green">
+        <i class="fas fa-trophy"></i>
+        <span class="card-label">Manage Tournaments</span>
+        <span class="card-desc">Create tournaments, add teams, calculate points</span>
+      </a>
+      <a href="calculate.html" class="card-item purple">
+        <i class="fas fa-image"></i>
+        <span class="card-label">Leaderboard Images</span>
+        <span class="card-desc">Generate styled leaderboard images</span>
+      </a>
+      <div class="card-item pink" onclick="document.getElementById('mergeBtn').click()">
+        <i class="fas fa-file-excel"></i>
+        <span class="card-label">Merge Excel</span>
+        <span class="card-desc">Combine multiple Excel standings files</span>
+      </div>
+      <div class="card-item purple" id="storageCard" onclick="handleStorageAction()">
+        <i class="fas fa-cloud"></i>
+        <span class="card-label" id="storageLabel">Local Storage</span>
+        <span class="card-desc" id="storageDesc">Data saved on this device only</span>
+      </div>
+    </div>
+
+    <!-- Button to calculator -->
+    <a href="calculate.html" class="btn-esports" style="margin-top:10px;"><i class="fas fa-arrow-right"></i> Open Calculator</a>
+
+    <!-- Merge Files Section -->
+    <div style="margin-top: 30px;">
+      <button class="btn-esports secondary" id="mergeBtn"><i class="fas fa-file-excel"></i> Merge Excel Files</button>
+    </div>
+
+    <div id="mergeSection" style="display: none; margin-top: 30px; text-align: center;">
+      <div class="file-input-wrapper">
+        <button class="btn-esports" onclick="document.getElementById('fileInput').click()">
+          <i class="fas fa-upload"></i> Upload Excel Files
+        </button>
+        <input type="file" id="fileInput" multiple accept=".xlsx,.xls" />
+      </div>
+      <div id="fileList" class="file-list" style="display: none;">
+        <p style="color: var(--accent); margin: 0 0 10px 0;">Selected Files:</p>
+        <div id="files"></div>
+      </div>
+      <div id="statusMsg"></div>
+      <button class="btn-esports" id="mergeNowBtn" style="display: none;">
+        <i class="fas fa-merge"></i> Merge & Download
+      </button>
+      <div id="mergedTableContainer" class="merged-table-container" style="display: none;">
+        <table class="table table-striped">
+          <thead><tr><th>Rank</th><th>Team</th><th>Booyah</th><th>Kill Points</th><th>Position Points</th><th style="color:var(--accent);">Total</th></tr></thead>
+          <tbody id="mergedTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Social -->
+    <div class="social">
+      <a href="https://www.instagram.com/rambhakt.esports/" target="_blank"><i class="fab fa-instagram"></i></a>
+      <a href="https://discord.gg/uGcwVq3vNp" target="_blank"><i class="fab fa-discord"></i></a>
+      <a href="https://www.youtube.com/@rb_esports7" target="_blank"><i class="fab fa-youtube"></i></a>
+    </div>
+    <div style="margin-top:20px;opacity:0.15;">
+      <a href="index.html" style="color:#666;font-size:10px;text-decoration:none;letter-spacing:2px;text-transform:uppercase;"><i class="fas fa-cog"></i> Build By RAM BHAKT ESPORTS</a>
+    </div>
+    <div style="margin-top:6px;">
+      
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+  <script>
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 75, density: { enable: true, value_area: 1000 }},
+        color: { value: ["#8a2be2", "#32cd32", "#ff1493"] },
+        shape: { type: "circle" },
+        opacity: { value: 0.4, random: true },
+        size: { value: 3, random: true },
+        line_linked: { enable: true, distance: 120, color: "#8a2be2", opacity: 0.2, width: 1 },
+        move: { enable: true, speed: 1.2, random: true, out_mode: "out" }
+      },
+      interactivity: {
+        events: { onhover: { enable: true, mode: "grab" }},
+        modes: { grab: { distance: 150, line_linked: { opacity: 0.4 } } }
+      },
+      retina_detect: true
+    });
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script>
+    AOS.init({ duration: 1000, once: true });
+  </script>
+
+  <!-- Auth Module -->
+  <script src="auth.js"></script>
+
+  <!-- Auth UI Logic -->
+  <script>
+    let _authMode = 'login';
+    let _pendingUser = null;
+    let _authInitialized = false;
+
+    function tryInitAuth() {
+      if (_authInitialized) return;
+      _authInitialized = true;
+      const inited = window.rbAuth && window.rbAuth.init();
+      if (inited) {
+        // Check if returning from email sign-in link
+        window.rbAuth.handleEmailLinkSignIn()
+          .then(user => {
+            if (user) {
+              _pendingUser = user;
+              return onUserAuthenticated(user);
+            }
+          })
+          .catch(err => {
+            showToast(err.message || 'Sign-in link expired. Try again.');
+            window.rbAuth.showAuthUI('login');
+          });
+
+        window.rbAuth.onAuthStateChanged(user => {
+          updateAuthUI(!!user);
+          if (user && !_handlingLink) {
+            _pendingUser = user;
+            window.rbAuth.getUserProfile().then(profile => {
+              if (profile) {
+                applyProfileUI(profile, user);
+                updateStorageCard(true);
+              } else if (document.getElementById('authOverlay').style.display === 'flex') {
+                window.showAuthStep('Profile');
+                document.getElementById('authTitle').textContent = 'Complete Profile';
+              }
+              refreshProfileStats();
+            });
+            // Auto-migrate local data to cloud once per login
+            if (!localStorage.getItem('rbCloudMigrated')) {
+              localStorage.setItem('rbCloudMigrated', '1');
+              window.rbAuth.migrateLocalToFirebase().catch(() => {});
+            }
+          } else if (!user) {
+            updateStorageCard(false);
+            localStorage.removeItem('rbCloudMigrated');
+          }
+        });
+      }
+    }
+
+    let _handlingLink = false;
+    function onUserAuthenticated(user) {
+      _handlingLink = true;
+      return window.rbAuth.getUserProfile().then(profile => {
+        if (profile && profile.name) {
+          applyProfileUI(profile, user);
+          updateStorageCard(true);
+          window.rbAuth.hideAuthUI();
+          window.rbAuth.migrateLocalToFirebase().catch(() => {});
+          showToast('Welcome back, ' + profile.name + '!');
+        } else {
+          window.showAuthStep('Profile');
+          document.getElementById('authTitle').textContent = 'Complete Profile';
+          document.getElementById('authName').value = user.displayName || '';
+        }
+        refreshProfileStats();
+        _handlingLink = false;
+      });
+    }
+
+    function applyProfileUI(profile, user) {
+      document.getElementById('profileDisplayName').textContent = profile.name || user.displayName || 'User';
+      document.getElementById('profileEmail').textContent = profile.email || user.email || '';
+      document.getElementById('profilePhone').textContent = profile.phone || user.phoneNumber || '';
+      document.getElementById('profileAvatar').textContent = (profile.name || 'U')[0].toUpperCase();
+    }
+
+    function updateAuthUI(isLoggedIn) {
+      document.getElementById('topLoginBtn').style.display = isLoggedIn ? 'none' : 'inline-flex';
+      const profileBtn = document.getElementById('topProfileBtn');
+      profileBtn.style.display = isLoggedIn ? 'inline-flex' : 'none';
+      if (isLoggedIn && window.rbAuth) {
+        const user = window.rbAuth.getCurrentUser();
+        if (user && user.displayName) {
+          document.getElementById('profileNameTop').textContent = user.displayName.split(' ')[0];
+        }
+      }
+    }
+
+    function updateStorageCard(isLoggedIn) {
+      const label = document.getElementById('storageLabel');
+      const desc = document.getElementById('storageDesc');
+      const card = document.getElementById('storageCard');
+      if (isLoggedIn) {
+        label.innerHTML = '<i class="fas fa-cloud"></i> Cloud Storage';
+        desc.textContent = 'Data saved securely on cloud';
+        card.className = 'card-item green';
+      } else {
+        label.innerHTML = '<i class="fas fa-database"></i> Local Storage';
+        desc.textContent = 'Data saved on this device only';
+        card.className = 'card-item purple';
+      }
+    }
+
+    function handleStorageAction() {
+      if (window.rbAuth && !window.rbAuth.isLoggedIn()) {
+        window.rbAuth.showAuthUI('login');
+        showToast('Login to save data on cloud with unlimited storage');
+      }
+    }
+
+    function toggleAuthMode() {
+      _authMode = _authMode === 'login' ? 'signup' : 'login';
+      document.getElementById('authTitle').textContent = _authMode === 'login' ? 'Login' : 'Sign Up';
+      document.getElementById('authToggleLabel').textContent = _authMode === 'login' ? 'New here?' : 'Already have an account?';
+      document.getElementById('authToggleLink').textContent = _authMode === 'login' ? 'Sign Up' : 'Login';
+      window.showAuthStep('Email');
+      document.getElementById('authEmailError').style.display = 'none';
+      document.getElementById('authEmail').value = '';
+    }
+
+    function handleSendEmailLink() {
+      const email = document.getElementById('authEmail').value.trim();
+      if (!email || !email.includes('@')) {
+        document.getElementById('authEmailError').textContent = 'Enter a valid email address';
+        document.getElementById('authEmailError').style.display = 'block';
+        return;
+      }
+      const btn = document.getElementById('authSendLinkBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      document.getElementById('authEmailError').style.display = 'none';
+
+      window.rbAuth.sendEmailLink(email)
+        .then(() => {
+          document.getElementById('authSentEmailDisplay').textContent = email;
+          window.showAuthStep('Wait');
+          document.getElementById('authTitle').textContent = 'Check Email';
+          btn.disabled = false;
+          btn.textContent = 'Send Sign-In Link';
+        })
+        .catch(err => {
+          document.getElementById('authEmailError').textContent = err.message || 'Failed to send email';
+          document.getElementById('authEmailError').style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Send Sign-In Link';
+        });
+    }
+
+    function handleCompleteProfile() {
+      const name = document.getElementById('authName').value.trim();
+      const phone = document.getElementById('authPhone').value.trim();
+      if (!name) {
+        document.getElementById('authProfileError').textContent = 'Enter your name';
+        document.getElementById('authProfileError').style.display = 'block';
+        return;
+      }
+      const btn = document.getElementById('authCompleteBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      document.getElementById('authProfileError').style.display = 'none';
+
+      window.rbAuth.completeProfile(name, phone)
+        .then(() => {
+          window.rbAuth.hideAuthUI();
+          updateAuthUI(true);
+          const user = window.rbAuth.getCurrentUser();
+          document.getElementById('profileDisplayName').textContent = name;
+          document.getElementById('profileEmail').textContent = user?.email || '';
+          document.getElementById('profilePhone').textContent = phone || user?.phoneNumber || '';
+          document.getElementById('profileAvatar').textContent = name[0].toUpperCase();
+          updateStorageCard(true);
+          window.rbAuth.migrateLocalToFirebase().catch(() => {});
+          showToast('Welcome, ' + name + '! Your data is now cloud-saved.');
+          btn.disabled = false;
+          btn.textContent = 'Start Using RB';
+        })
+        .catch(err => {
+          document.getElementById('authProfileError').textContent = err.message || 'Failed to save profile';
+          document.getElementById('authProfileError').style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Start Using RB';
+        });
+    }
+
+    function showProfile() {
+      if (!window.rbAuth || !window.rbAuth.isLoggedIn()) {
+        window.rbAuth.showAuthUI('login');
+        return;
+      }
+      refreshProfileStats();
+      document.getElementById('profileOverlay').style.display = 'flex';
+      document.getElementById('profilePanel').style.display = 'block';
+      // Check if local data exists to migrate
+      try {
+        const local = localStorage.getItem('rbeTournaments');
+        const parsed = JSON.parse(local || '[]');
+        document.getElementById('migrateBtn').style.display = (Array.isArray(parsed) && parsed.length > 0) ? 'block' : 'none';
+      } catch(e) {
+        document.getElementById('migrateBtn').style.display = 'none';
+      }
+    }
+
+    function hideProfile() {
+      document.getElementById('profileOverlay').style.display = 'none';
+      document.getElementById('profilePanel').style.display = 'none';
+    }
+
+    function refreshProfileStats() {
+      if (!window.rbAuth || !window.rbAuth.isLoggedIn()) return;
+      const user = window.rbAuth.getCurrentUser();
+      const db = window.rbAuth.getUserDb();
+      if (!db || !user) return;
+      db.ref('users/' + user.uid + '/tournaments').once('value')
+        .then(snap => {
+          const val = snap.val();
+          let tCount = 0, mCount = 0;
+          if (val) {
+            Object.keys(val).forEach(k => {
+              tCount++;
+              const t = val[k];
+              if (t.matches && Array.isArray(t.matches)) mCount += t.matches.length;
+            });
+          }
+          document.getElementById('statTournaments').textContent = tCount;
+          document.getElementById('statMatches').textContent = mCount;
+        })
+        .catch(() => {});
+    }
+
+    function handleMigrateData() {
+      window.rbAuth.migrateLocalToFirebase()
+        .then(() => {
+          showToast('Local data uploaded to cloud!');
+          document.getElementById('migrateBtn').style.display = 'none';
+          refreshProfileStats();
+        })
+        .catch(err => showToast('Failed: ' + err.message));
+    }
+
+    function handleLogout() {
+      if (confirm('Logout from your account?')) {
+        window.rbAuth.signOut().then(() => {
+          updateAuthUI(false);
+          hideProfile();
+          window.rbAuth.hideAuthUI();
+          updateStorageCard(false);
+          showToast('Logged out');
+        });
+      }
+    }
+
+    // Toast
+    function showToast(msg) {
+      const t = document.getElementById('toastMsg');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // Merge File Logic (same as before)
+    let selectedFiles = [];
+    document.getElementById('mergeBtn').addEventListener('click', function() {
+      const s = document.getElementById('mergeSection');
+      s.style.display = s.style.display === 'none' ? 'block' : 'none';
+    });
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+      selectedFiles = Array.from(e.target.files);
+      displayFileList();
+      if (selectedFiles.length > 0) {
+        document.getElementById('mergeNowBtn').style.display = 'inline-block';
+        showStatus(selectedFiles.length + ' file(s) selected', 'info');
+      }
+    });
+    function displayFileList() {
+      const fl = document.getElementById('files');
+      fl.innerHTML = '';
+      if (selectedFiles.length === 0) { document.getElementById('fileList').style.display = 'none'; return; }
+      document.getElementById('fileList').style.display = 'block';
+      selectedFiles.forEach((file, idx) => {
+        const d = document.createElement('div');
+        d.className = 'file-item';
+        d.innerHTML = '<span><i class="fas fa-file-excel"></i> ' + file.name + '</span><button onclick="removeFile(' + idx + ')">Remove</button>';
+        fl.appendChild(d);
+      });
+    }
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      displayFileList();
+      if (selectedFiles.length === 0) { document.getElementById('mergeNowBtn').style.display = 'none'; document.getElementById('statusMsg').innerHTML = ''; }
+      else showStatus(selectedFiles.length + ' file(s) selected', 'info');
+    }
+    function showStatus(msg, type) {
+      const s = document.getElementById('statusMsg');
+      s.className = 'status-msg ' + type;
+      s.textContent = msg;
+    }
+    document.getElementById('mergeNowBtn').addEventListener('click', async function() {
+      try {
+        showStatus('Processing files...', 'info');
+        let mergedData = {};
+        for (let file of selectedFiles) {
+          const buf = await file.arrayBuffer();
+          const wb = XLSX.read(buf, { type: 'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const data = XLSX.utils.sheet_to_json(ws);
+          data.forEach(row => {
+            const tn = row.Team ? row.Team.trim() : '';
+            if (tn) {
+              if (!mergedData[tn]) mergedData[tn] = { Team: tn, Total: 0, Booyah: 0, 'Kill Points': 0, 'Position Points': 0 };
+              mergedData[tn].Total += parseInt(row.Total) || 0;
+              mergedData[tn].Booyah += parseInt(row.Booyah) || 0;
+              mergedData[tn]['Kill Points'] += parseInt(row['Kill Points']) || 0;
+              mergedData[tn]['Position Points'] += parseInt(row['Position Points']) || 0;
+            }
+          });
+        }
+        let arr = Object.values(mergedData).sort((a, b) => b.Total - a.Total);
+        arr = arr.map((r, i) => ({ Rank: i + 1, ...r }));
+        const tbody = document.getElementById('mergedTableBody');
+        tbody.innerHTML = '';
+        arr.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = '<td>' + r.Rank + '</td><td style="text-align:left;">' + r.Team + '</td><td>' + r.Booyah + '</td><td>' + r['Kill Points'] + '</td><td>' + r['Position Points'] + '</td><td style="color:var(--accent);font-weight:bold;">' + r.Total + '</td>';
+          tbody.appendChild(tr);
+        });
+        document.getElementById('mergedTableContainer').style.display = 'block';
+        const exp = arr.map(r => ({ Rank: r.Rank, Team: r.Team, Booyah: r.Booyah, 'Kill Points': r['Kill Points'], 'Position Points': r['Position Points'], Total: r.Total }));
+        const nws = XLSX.utils.json_to_sheet(exp);
+        nws['!cols'] = [{wch:6},{wch:25},{wch:10},{wch:15},{wch:18},{wch:10}];
+        const nwb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(nwb, nws, 'Overall Standings');
+        XLSX.writeFile(nwb, 'Merged_Standings_' + Date.now() + '.xlsx');
+        showStatus('Successfully merged ' + selectedFiles.length + ' file(s)!', 'success');
+      } catch(e) {
+        showStatus('Error: ' + e.message, 'error');
+      }
+    });
+
+    // Init on load
+    tryInitAuth();
+
+    // Check storage usage on load
+    try {
+      const usage = new Blob([localStorage.getItem('rbeTournaments') || '']).size;
+      if (usage > 3000000 && (!window.rbAuth || !window.rbAuth.isLoggedIn())) {
+        showToast('Local storage is getting full (' + Math.round(usage/10000)/100 + 'MB). Login for unlimited cloud storage!');
+      }
+    } catch(e) {}
+
+    // Register service worker for PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+
+</body>
+</html>
