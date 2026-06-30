@@ -7,6 +7,8 @@ const ASSETS = [
   './auth.js',
   './9pm.png',
   './icon.svg',
+  './icon-192.png',
+  './icon-512.png',
   './manifest.json'
 ];
 
