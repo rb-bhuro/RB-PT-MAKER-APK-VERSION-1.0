@@ -1,0 +1,14 @@
+[[headers]]
+  for = "*.svg"
+  [headers.values]
+    Content-Type = "image/svg+xml"
+
+[[headers]]
+  for = "*.webmanifest"
+  [headers.values]
+    Content-Type = "application/json"
+
+[[headers]]
+  for = "manifest.json"
+  [headers.values]
+    Content-Type = "application/json"
